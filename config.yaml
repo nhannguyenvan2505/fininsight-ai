@@ -1,0 +1,66 @@
+# FinInsight AI — Cấu hình hệ thống
+
+# ─── ChromaDB ─────────────────────────────────────────────────────────────────
+chroma:
+  persist_directory: "data/chroma_db"
+  collection_prefix: ""           # Prefix cho tên collection (nếu cần)
+
+# ─── LLM ─────────────────────────────────────────────────────────────────────
+llm:
+  model: "qwen-plus"                    # Must match QWEN_BASE_URL provider
+  temperature: 0.2                # Độ ngẫu nhiên (0.0 = deterministic)
+  max_tokens: 2048                # Giới hạn token đầu ra mỗi lần gọi
+
+# ─── Ingestion Pipeline ───────────────────────────────────────────────────────
+ingestion:
+  embedding_model: "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"  # Nhanh ~3x so với mpnet, dim=384, chất lượng tương đương cho BCTC
+  embed_batch_size: 64             # Batch lớn hơn → embed nhanh hơn trên CPU
+  chunk_size: 512                 # Kích thước chunk (ký tự)
+  chunk_overlap: 64               # Overlap giữa các chunk
+  min_readable_page_ratio: 0.5    # Cảnh báo nếu đọc được ít hơn tỷ lệ này
+  ocr:
+    backend: auto                         # auto | rapidocr | easyocr — auto ưu tiên RapidOCR (nhanh hơn EasyOCR ~5-10x trên CPU)
+    enabled: true
+    cache_enabled: true                # Cache OCR — upload lại cùng file gần như tức thì
+    languages: ["vi", "en"]
+    zoom: 1.0                          # 1.0 nhanh hơn 1.2, đủ cho BCTC in rõ; OCR song song bù chất lượng
+    min_confidence: 0.3            # Ngưỡng tin cậy OCR tối thiểu
+    image_page_coverage_threshold: 0.55   # Ảnh phủ >= 55% → trang ảnh (hoặc mixed nếu có text)
+    mixed_image_coverage_threshold: 0.10  # Ảnh phủ >= 10% + text hữu ích → trang mixed
+    min_meaningful_text_chars: 40        # Tối thiểu ký tự để coi text layer là hữu ích
+  financial_validation:
+    enabled: true                         # Bật kiểm tra PDF có phải BCTC
+    reject_on_fail: false                  # Từ chối nạp file không phải tài liệu tài chính
+    min_score: 3                          # Điểm tối thiểu (từ khoá BCTC)
+    require_strong_indicator: true        # Cần ít nhất 1 từ khoá mạnh (vd: báo cáo tài chính)
+    min_numeric_density: 0.04             # Mật độ số tối thiểu (hỗ trợ file scan/OCR)
+    low_confidence_threshold: 5           # Dưới ngưỡng này → cảnh báo độ tin cậy thấp
+    sample_chars: 8000                    # Số ký tự mẫu để phân tích
+  upload: {max_bytes: 20971520}                           # Upload đồng bộ qua UI
+
+# ─── Gợi ý câu hỏi ────────────────────────────────────────────────────────────
+suggestions:
+  use_llm: true                           # Dùng LLM + nội dung tài liệu để gợi ý thông minh
+  fallback_to_templates: true             # Fallback template nếu LLM / retrieval thất bại
+  count: 3                                # Số câu gợi ý mỗi lần
+  context_top_k: 4                        # Số chunk lấy làm ngữ cảnh
+  max_context_chars: 2500                 # Giới hạn ký tự context gửi LLM
+  temperature: 0.4                        # Độ đa dạng câu gợi ý
+  max_tokens: 300                         # Token tối đa cho LLM gợi ý
+
+# ─── Retrieval ────────────────────────────────────────────────────────────────
+retrieval:
+  semantic_top_k: 6              # Số kết quả semantic search
+  bm25_top_k: 6                  # Số kết quả BM25 search
+  hybrid_top_k: 6                # Số kết quả sau RRF fusion
+  qa_top_k: 5                    # Số chunk context cho module QA
+  bm25_weight: 0.4               # Trọng số BM25 trong RRF
+  semantic_weight: 0.6           # Trọng số Semantic trong RRF
+
+# ─── Doanh nghiệp được hỗ trợ ────────────────────────────────────────────────
+companies:
+  - fpt
+  - vinamilk
+  - vietcombank
+  - hoaphat
+  - tgdd

@@ -1,0 +1,42 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables (Crucial!)
+.env
+.env.local
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Python Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+
+# Project caches and logs
+.pytest_cache/
+.coverage
+htmlcov/
+logs/
+*.log
+
+# Databases and heavy cache
+data/chroma_db/
+data/processed/ocr_cache/
+data/processed/**/*.json
+data/raw_pdfs/**/*.pdf
+dist/
+build/
+*.egg-info/
+.ruff_cache/
+
+# VS Code / IDEs
+.vscode/
+.idea/
+
+# Agent folder
+.agent/
+.publication/
