@@ -32,7 +32,8 @@ class TestQAModule:
     def test_answer_question_no_company(self, mock_llm, mock_search):
         mock_search.return_value = []
         from src.modules.qa_module import answer_question
-        result = answer_question("Câu hỏi không tìm thấy")
+        with patch("src.modules.qa_module.get_available_collections", return_value=["fpt", "vinamilk"]):
+            result = answer_question("Câu hỏi không tìm thấy")
         assert "Không tìm thấy" in result["answer"]
 
     @patch("src.modules.qa_module.hybrid_search")
